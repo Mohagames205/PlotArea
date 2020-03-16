@@ -92,3 +92,8 @@ Deze versie bevat breaking API-changes
 
 ## 5.1.0BETA
 * De `registerListener()` method in de EventCaller class is nu statisch, ziet er beter uit.
+
+## 5.2.0BETA
+* Het custom eventsysteem is verwijderd. De Plot plugin gebruikt nu de PocketMine eventlistener, dit is handiger om te gebruiken en om op verder uit te breiden.
+* Deprecated methods zijn verwijderd.
+
