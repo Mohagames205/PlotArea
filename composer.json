@@ -1,9 +1,15 @@
 {
-    "require": {
-        "phpunit/phpunit": "^8.5"
-    },
-
-    "autoload":{
-        "psr-4" : { "mohagames\\PlotArea\\utils\\" : "src/mohagames/PlotArea/utils"}
+  "require": {
+    "phpunit/phpunit": "^8.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "mohagames\\PlotArea\\utils\\": "src/mohagames/PlotArea/utils",
+      "mohagames\\PlotArea\\events\\": "src/mohagames/PlotArea/events",
+      "mohagames\\PlotArea\\": "src/mohagames/PlotArea"
     }
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^0.12.8"
+  }
 }

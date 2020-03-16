@@ -336,8 +336,8 @@ class Main extends PluginBase implements Listener
                                     $plot = Plot::get($sender);
                                     $link_plot = Plot::getPlotByName($args[2]);
                                     if ($plot !== null && $link_plot !== null) {
-                                        if (!$plot->isGrouped() && !$link_plot->isGrouped() && !Group::groupExists($args[1])) {
-                                            $res = Group::saveGroup($args[1], $plot, $link_plot);
+                                        if (!$plot->isGrouped() && !$link_plot->isGrouped() && !Group::exists($args[1])) {
+                                            $res = Group::save($args[1], $plot, $link_plot);
                                             $res ? $msg = "§aDe group is succesvol aangemaakt en het plot is toegevoegd bij de group." : $msg = "§4De masterplot en slavenplot kunnen niet hetzelfde zijn.";
                                             $sender->sendMessage($msg);
                                         } else {
@@ -360,8 +360,8 @@ class Main extends PluginBase implements Listener
                                 if (isset($args[1])) {
                                     $plot = Plot::get($sender);
                                     if ($plot !== null) {
-                                        if (Group::groupExists($args[1])) {
-                                            $group = Group::getGroup($args[1]);
+                                        if (Group::exists($args[1])) {
+                                            $group = Group::get($args[1]);
                                             $group->addToGroup($plot);
                                             $sender->sendMessage("§aHet plot is succesvol toegevoegd aan de groep.");
                                         } else {
@@ -404,8 +404,8 @@ class Main extends PluginBase implements Listener
                                         $sender->sendMessage("§4U staat niet op een plot");
                                     }
                                 } else {
-                                    if (Group::groupExists($args[1])) {
-                                        Group::getGroup($args[1])->delete();
+                                    if (Group::exists($args[1])) {
+                                        Group::get($args[1])->delete();
                                         $sender->sendMessage("§aDe group is succesvol verwijderd.");
                                     }
                                 }

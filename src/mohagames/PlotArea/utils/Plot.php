@@ -77,22 +77,24 @@ class Plot extends PermissionManager
      */
     public static function save($name, Level $level, array $location, string $owner = null, array $members = array())
     {
-        $db = Main::getInstance()->db;
-        $members_ser = serialize($members);
-        $location_ser = serialize($location);
-        $max_members = Main::getInstance()->getConfig()->get("max_members");
-        $levelname = $level->getName();
-        $stmt = $db->prepare("INSERT INTO plots (plot_name, plot_owner, plot_members, plot_location, plot_world, max_members) values(:plot_name, :plot_owner, :plot_members, :plot_location, :plot_world, :max_members)");
-        $stmt->bindParam("plot_name", $name, SQLITE3_TEXT);
-        $stmt->bindParam("plot_owner", $owner, SQLITE3_TEXT);
-        $stmt->bindParam("plot_members", $members_ser, SQLITE3_TEXT);
-        $stmt->bindParam("plot_location", $location_ser, SQLITE3_TEXT);
-        $stmt->bindParam("plot_world", $levelname, SQLITE3_TEXT);
-        $stmt->bindParam("max_members", $max_members, SQLITE3_INTEGER);
-        $stmt->execute();
-        $stmt->close();
+        if (is_null(Plot::getPlotByName($name))) {
+            $db = Main::getInstance()->db;
+            $members_ser = serialize($members);
+            $location_ser = serialize($location);
+            $max_members = Main::getInstance()->getConfig()->get("max_members");
+            $levelname = $level->getFolderName();
+            $stmt = $db->prepare("INSERT INTO plots (plot_name, plot_owner, plot_members, plot_location, plot_world, max_members) values(:plot_name, :plot_owner, :plot_members, :plot_location, :plot_world, :max_members)");
+            $stmt->bindParam("plot_name", $name, SQLITE3_TEXT);
+            $stmt->bindParam("plot_owner", $owner, SQLITE3_TEXT);
+            $stmt->bindParam("plot_members", $members_ser, SQLITE3_TEXT);
+            $stmt->bindParam("plot_location", $location_ser, SQLITE3_TEXT);
+            $stmt->bindParam("plot_world", $levelname, SQLITE3_TEXT);
+            $stmt->bindParam("max_members", $max_members, SQLITE3_INTEGER);
+            $stmt->execute();
+            $stmt->close();
 
-        return new Plot($name, $owner, $level, $location, $members);
+            return new Plot($name, $owner, $level, $location, $members);
+        }
     }
 
     /**
@@ -135,7 +137,7 @@ class Plot extends PermissionManager
 
                 $res = $pos1->getY() == $pos2->getY();
 
-                if (($p_x <= $pos1->getX() && $p_x >= $pos2->getX() && $p_z <= $pos1->getZ() && $p_z >= $pos2->getZ()) && (($p_y >= $pos1->getY() && $p_y < $pos2->getY()) || $res) && $plot->getLevel()->getName() == $level->getName()) {
+                if (($p_x <= $pos1->getX() && $p_x >= $pos2->getX() && $p_z <= $pos1->getZ() && $p_z >= $pos2->getZ()) && (($p_y >= $pos1->getY() && $p_y < $pos2->getY()) || $res) && $plot->getLevel()->getFolderName() == $level->getFolderName()) {
                     $found_plot = $plot;
                     if ($plot->isGrouped() && $grouping) {
                         $found_plot = $plot->getGroup()->getMasterPlot();
@@ -311,7 +313,7 @@ class Plot extends PermissionManager
      * @return int
      */
     public function getId() : int{
-        $worldname = $this->level->getName();
+        $worldname = $this->level->getFolderName();
         $conn = $this->db->prepare("SELECT plot_id FROM plots WHERE plot_location = :location AND plot_world = :plot_world");
         $loc = serialize($this->getLocation()->getArrayedLocation());
         $conn->bindParam("location", $loc, SQLITE3_TEXT);
@@ -366,7 +368,7 @@ class Plot extends PermissionManager
         if (Member::exists($member)) {
             $members = $this->getMembers();
             $plot_id = $this->getId();
-            $plot = $this->getPlot();
+            $plot = $this;
             if (!empty($member)) {
                 if (count($members) < $this->getMaxMembers() && !in_array($member, $members)) {
                     $ev = new PlotAddMemberEvent($this, $member, $executor);

@@ -51,7 +51,7 @@ class Group
     /**
      * @param $group_name
      * @return Group|null
-     * @deprecated Deze method wordt binnenkort verwijderd en vervangen door een andere method
+     * @deprecated Deze method wordt binnenkort verwijderd en vervangen door Group::get()
      * @see Group::get()
      *
      * Deze method returned een Group Object als er een Group is gevonden met de gegeven naam. Als er geen Group is gevonden met de gegeven naam dan returned de method null
@@ -193,7 +193,7 @@ class Group
      */
     public function getName()
     {
-        $group_id = $this->getGroupId();
+        $group_id = $this->getId();
         $stmt = $this->db->prepare("SELECT group_name FROM groups WHERE group_id = :group_id");
         $stmt->bindParam("group_id", $group_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
@@ -211,7 +211,7 @@ class Group
      */
     public function getMasterPlot(): Plot
     {
-        $group_id = $this->getGroupId();
+        $group_id = $this->getId();
         $stmt = $this->db->prepare("SELECT master_plot FROM groups WHERE group_id = :group_id");
         $stmt->bindParam("group_id", $group_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
@@ -252,7 +252,7 @@ class Group
         $ev = new GroupSetNameEvent($this, $this->getName(), $name, $executor);
         $ev->call();
         if (!$ev->isCancelled()) {
-            $group_id = $this->getGroupId();
+            $group_id = $this->getId();
             $stmt = $this->db->prepare("UPDATE groups SET group_name = :group_name WHERE group_id = :group_id");
             $stmt->bindParam("group_name", $name, SQLITE3_TEXT);
             $stmt->bindParam("group_id", $group_id, SQLITE3_INTEGER);
@@ -275,7 +275,7 @@ class Group
         $ev->call();
         if (!$ev->isCancelled()) {
             $master_plot = $plot->getName();
-            $group_id = $this->getGroupId();
+            $group_id = $this->getId();
             $stmt = $this->db->prepare("UPDATE groups SET master_plot = :group_name WHERE group_id = :group_id");
             $stmt->bindParam("master_plot", $master_plot, SQLITE3_TEXT);
             $stmt->bindParam("group_id", $group_id, SQLITE3_INTEGER);
@@ -319,12 +319,35 @@ class Group
     }
 
     /**
+     * @param $group_name
+     * @return bool
+     * @deprecated gebruik de Group::exists method
+     *
+     * Deze static method checkt als de gegeven Group bestaat of niet
+     *
+     */
+    public static function groupExists($group_name)
+    {
+        $group_name = strtolower($group_name);
+        $stmt = Main::getInstance()->db->prepare("SELECT * FROM groups WHERE lower(group_name) = :group_name");
+        $stmt->bindParam("group_name", $group_name, SQLITE3_TEXT);
+        $res = $stmt->execute();
+
+        $count = 0;
+        while ($row = $res->fetchArray()) {
+            $count++;
+        }
+
+        return $count > 0;
+    }
+
+    /**
      * Deze static method checkt als de gegeven Group bestaat of niet
      *
      * @param $group_name
      * @return bool
      */
-    public static function groupExists($group_name)
+    public static function exists($group_name)
     {
         $group_name = strtolower($group_name);
         $stmt = Main::getInstance()->db->prepare("SELECT * FROM groups WHERE lower(group_name) = :group_name");
