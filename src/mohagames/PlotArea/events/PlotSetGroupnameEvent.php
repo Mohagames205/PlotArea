@@ -12,9 +12,10 @@
 namespace mohagames\PlotArea\events;
 
 use mohagames\PlotArea\utils\Plot;
+use pocketmine\event\Cancellable;
 use pocketmine\Player;
 
-class PlotSetGroupnameEvent extends PlotEvent
+class PlotSetGroupnameEvent extends PlotEvent implements Cancellable
 {
 
     private $plot;
