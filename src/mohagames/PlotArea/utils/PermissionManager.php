@@ -27,7 +27,8 @@ class PermissionManager
     public const PLOT_INTERACT_ITEMFRAMES = "plot.interact.itemframes";
     public const PLOT_INTERACT_ARMORSTANDS = "plot.interact.armorstands";
     public const PLOT_SET_PINCONSOLE = "plot.set.pinconsole";
-    public $permission_list;
+
+    public static $permission_list;
 
     /**
      * De permission Manager zorgt ervoor dat alleen de bevoegde leden bepaalde acties kunnen uitvoeren op het Plot
@@ -40,15 +41,6 @@ class PermissionManager
     {
         $this->plot = $plot;
         $this->db = Main::getInstance()->db;
-        $this->permission_list = [
-            self::PLOT_INTERACT_TRAPDOORS => true,
-            self::PLOT_INTERACT_GATES => true,
-            self::PLOT_INTERACT_CHESTS => true,
-            self::PLOT_INTERACT_DOORS => true,
-            self::PLOT_INTERACT_ITEMFRAMES => true,
-            self::PLOT_INTERACT_ARMORSTANDS => true,
-            self::PLOT_SET_PINCONSOLE => true
-        ];
     }
 
     /**
@@ -79,7 +71,7 @@ class PermissionManager
                     $stmt->execute();
                     return true;
                 } else {
-                    $permissions = $this->permission_list;
+                    $permissions = self::$permission_list;
                     $permissions[$permission] = $boolean;
                     $perms = serialize([$player => $permissions]);
                     $stmt = $this->db->prepare("UPDATE plots SET plot_permissions = :plot_permissions WHERE plot_id = plot_id");
@@ -106,7 +98,7 @@ class PermissionManager
             $plot_id = $this->plot->getId();
             $perms = $this->getPermissions();
 
-            $perms[$player] = $this->permission_list;
+            $perms[$player] = self::$permission_list;
 
             $perms = serialize($perms);
 
@@ -122,7 +114,7 @@ class PermissionManager
      */
     protected function destructPlayerPerms(string $player)
     {
-        $permission_keys = array_keys($this->permission_list);
+        $permission_keys = array_keys(self::$permission_list);
         if ($this->getPlayerPermissions($player) !== null) {
             foreach ($permission_keys as $perm) {
                 $this->setPermission($player, $perm, false);
@@ -208,13 +200,68 @@ class PermissionManager
                         $plot->initPlayerPerms($member);
                         Main::getInstance()->getLogger()->info("Member permissions succesvol ingesteld.");
                     }
-                }
+            }
         }
     }
 
-    public function exists(string $permission){
-        $permission_keys = array_keys($this->permission_list);
+    public function exists(string $permission)
+    {
+        $permission_keys = array_keys(self::$permission_list);
         return in_array($permission, $permission_keys);
+
+    }
+
+    public function appendPermission(string $player, string $permission)
+    {
+        $allpermissions = $this->plot->getPermissions();
+
+        $allpermissions[$player][$permission] = true;
+
+        $allpermissions = serialize($allpermissions);
+
+        $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions");
+        $stmt->bindParam("permissions", $allpermissions);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    protected function removePermission(string $player, string $permission)
+    {
+
+        $allpermissions = $this->getPermissions();
+
+        unset($allpermissions[$player][$permission]);
+        $allpermissions = serialize($allpermissions);
+        $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions");
+        $stmt->bindParam("permissions", $allpermissions);
+        $stmt->execute();
+        $stmt->close();
+
+    }
+
+    public static function checkPermissionVersion()
+    {
+        $plots = Plot::getPlots();
+        $permission_list = array_keys(PermissionManager::$permission_list);
+        foreach ($plots as $plot) {
+            foreach ($plot->getMembers() as $member) {
+                $playerpermissions = array_keys($plot->getPlayerPermissions($member));
+                if (!empty(array_diff($playerpermissions, $permission_list)) || !empty(array_diff($permission_list, $playerpermissions))) {
+                    foreach ($permission_list as $perm) {
+                        if (!isset($plot->getPermissions()[$member][$perm])) {
+                            $plot->appendPermission($member, $perm);
+                        }
+                    }
+                    foreach ($playerpermissions as $perm) {
+                        if (!$plot->exists($perm)) {
+                            $plot->removePermission($member, $perm);
+                            var_dump($plot->getPlayerPermissions($member));
+                        }
+                    }
+                }
+            }
+        }
+
 
     }
 

@@ -559,8 +559,9 @@ class Plot extends PermissionManager
      */
     public static function getPlots() : array{
         $res = Main::getInstance()->db->query("SELECT * FROM plots");
-        $plots = null;
+        $plots = [];
         while($row = $res->fetchArray()){
+
             $plots[] = Plot::getPlotById($row["plot_id"]);
         }
         return $plots;
@@ -588,6 +589,7 @@ class Plot extends PermissionManager
                     $world = $main->getServer()->getLevelByName($row["plot_world"]);
                 }
             }
+
             if ($world !== null) {
                 $plot = new Plot($row["plot_name"], $row["plot_owner"], $world, unserialize($row["plot_location"]), unserialize($row["plot_members"]));
             }

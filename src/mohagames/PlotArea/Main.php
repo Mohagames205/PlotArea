@@ -61,6 +61,19 @@ class Main extends PluginBase implements Listener
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
 
+
+        PermissionManager::$permission_list = [
+            PermissionManager::PLOT_INTERACT_TRAPDOORS => true,
+            PermissionManager::PLOT_INTERACT_GATES => true,
+            PermissionManager::PLOT_INTERACT_CHESTS => true,
+            PermissionManager::PLOT_INTERACT_DOORS => true,
+            PermissionManager::PLOT_INTERACT_ITEMFRAMES => true,
+            PermissionManager::PLOT_INTERACT_ARMORSTANDS => true,
+            PermissionManager::PLOT_SET_PINCONSOLE => true
+        ];
+
+
+        PermissionManager::checkPermissionVersion();
     }
 
     /**
@@ -486,6 +499,11 @@ class Main extends PluginBase implements Listener
     public static function getInstance(): Main
     {
         return Main::$instance;
+    }
+
+    public static function getDb(): SQLite3
+    {
+        return Main::getInstance()->db;
     }
 }
 
