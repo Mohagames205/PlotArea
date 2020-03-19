@@ -27,6 +27,7 @@ class PermissionManager
     public const PLOT_INTERACT_ITEMFRAMES = "plot.interact.itemframes";
     public const PLOT_INTERACT_ARMORSTANDS = "plot.interact.armorstands";
     public const PLOT_SET_PINCONSOLE = "plot.set.pinconsole";
+    public const PLOT_INTERACT_HOPPER = "plot.interact.hopper";
 
     public static $permission_list;
 

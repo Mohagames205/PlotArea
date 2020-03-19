@@ -69,7 +69,8 @@ class Main extends PluginBase implements Listener
             PermissionManager::PLOT_INTERACT_DOORS => true,
             PermissionManager::PLOT_INTERACT_ITEMFRAMES => true,
             PermissionManager::PLOT_INTERACT_ARMORSTANDS => true,
-            PermissionManager::PLOT_SET_PINCONSOLE => true
+            PermissionManager::PLOT_SET_PINCONSOLE => true,
+            PermissionManager::PLOT_INTERACT_HOPPER => true
         ];
 
 
@@ -290,7 +291,7 @@ class Main extends PluginBase implements Listener
                             if($plot !== null){
                                 if ($sender->hasPermission("pa.staff.plot.flags") || $plot->isOwner($sender->getName())) {
                                     $perm_mngr = new PermissionManager($plot);
-                                    $perms = $perm_mngr->permission_list;
+                                    $perms = PermissionManager::$permission_list;
                                     $perms_text = "§bFlags die je per gebruiker kan instellen:\n";
                                     foreach($perms as $perm => $value){
                                         $perms_text .= TextFormat::DARK_AQUA . $perm . "\n";
