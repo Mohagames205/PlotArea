@@ -17,7 +17,7 @@ Make personal areas for players!
   - [ ] De manier waarop werelden worden ingeladen en gechecked wordt aangepast.
 - [X] PermissionManager
   - [X] Permissions moeten makkelijk kunnen worden toegevoegd en verwijderd
-  - ~~[ ] Het huidige flag systeem elimineren
+  - ~[ ] Het huidige flag systeem elimineren~
 
 
 ## Er worden ook nieuwe classes toegevoegd
