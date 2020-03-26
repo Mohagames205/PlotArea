@@ -44,7 +44,7 @@ class Main extends PluginBase implements Listener
 
         Main::$instance = $this;
 
-        $config = new Config($this->getDataFolder() . "config.yml", -1, array("item_id" => ItemIds::WOODEN_SHOVEL, "plot_popup" => true, "max_members" => 10, "xp-add" => 100, "xp-deduct" => 100));
+        $config = new Config($this->getDataFolder() . "config.yml", -1, array("item_id" => ItemIds::WOODEN_SHOVEL, "plot_popup" => true, "max_members" => 10));
         $config->save();
         $this->item = $config->get("item_id");
         $popup = $config->get("plot_popup");

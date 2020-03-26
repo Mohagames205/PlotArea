@@ -13,6 +13,7 @@
 namespace mohagames\PlotArea\utils;
 
 use mohagames\PlotArea\events\PlotAddMemberEvent;
+use mohagames\PlotArea\events\PlotCreateEvent;
 use mohagames\PlotArea\events\PlotDeleteEvent;
 use mohagames\PlotArea\events\PlotRemoveMemberEvent;
 use mohagames\PlotArea\events\PlotResetEvent;
@@ -73,9 +74,10 @@ class Plot extends PermissionManager
      * @param array $location
      * @param string $owner
      * @param array $members
+     * @param Player|null $executor
      * @return Plot
      */
-    public static function save($name, Level $level, array $location, string $owner = null, array $members = array())
+    public static function save($name, Level $level, array $location, string $owner = null, array $members = array(), Player $executor = null)
     {
         if (is_null(Plot::getPlotByName($name))) {
             $db = Main::getInstance()->db;
@@ -93,7 +95,14 @@ class Plot extends PermissionManager
             $stmt->execute();
             $stmt->close();
 
-            return new Plot($name, $owner, $level, $location, $members);
+            $plot = new Plot($name, $owner, $level, $location, $members);
+
+            $ev = new PlotCreateEvent($plot, $executor);
+            $ev->call();
+
+            return $plot;
+
+
         }
     }
 

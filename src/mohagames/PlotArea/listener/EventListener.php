@@ -15,7 +15,6 @@ use mohagames\PlotArea\Main;
 use mohagames\PlotArea\tasks\blockMovementTask;
 use mohagames\PlotArea\utils\PermissionManager;
 use mohagames\PlotArea\utils\Plot;
-use mohagames\PlotArea\utils\PublicChest;
 use pocketmine\block\Chest;
 use pocketmine\block\Door;
 use pocketmine\block\FenceGate;
@@ -51,10 +50,9 @@ class EventListener implements Listener
         if ($block instanceof Chest) {
             $plot = Plot::get($e->getBlock());
             if ($plot !== null) {
-                if ($plot->hasPermission($player->getName(), PermissionManager::PLOT_INTERACT_CHESTS) || $player->hasPermission("pa.staff.interactbypass") || PublicChest::getChest($block) !== null) {
+                if ($plot->hasPermission($player->getName(), PermissionManager::PLOT_INTERACT_CHESTS) || $player->hasPermission("pa.staff.interactbypass")) {
                     return;
                 }
-
                 $player->sendPopup("§4U kan deze actie niet uitvoeren.");
                 $e->setCancelled();
 
@@ -159,7 +157,7 @@ class EventListener implements Listener
                 return;
             }
             if ($e->getEntity() instanceof ArmorStand) {
-                $e->getPlayer()->sendPopup("§4U kan deze actie niet uitvoeren.");
+                $damager->sendPopup("§4U kan deze actie niet uitvoeren.");
                 $e->setCancelled();
             }
         }
