@@ -59,8 +59,6 @@ permissions:
       pa.staff.plot.setflag:
         description: Allows the user to use the /plot setflag command
         default: op
-      pa.staff.plot.publicchest:
-        default: op
       pa.staff.plot.setmaxmembers:
         default: op
       pa.staff.interactbypass:

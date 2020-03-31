@@ -44,7 +44,7 @@ class Main extends PluginBase implements Listener
 
         Main::$instance = $this;
 
-        $config = new Config($this->getDataFolder() . "config.yml", -1, array("item_id" => ItemIds::WOODEN_SHOVEL, "plot_popup" => true, "max_members" => 10, "xp-add" => 100, "xp-deduct" => 100));
+        $config = new Config($this->getDataFolder() . "config.yml", -1, array("item_id" => ItemIds::WOODEN_SHOVEL, "plot_popup" => true, "max_members" => 10));
         $config->save();
         $this->item = $config->get("item_id");
         $popup = $config->get("plot_popup");
@@ -54,7 +54,6 @@ class Main extends PluginBase implements Listener
 
         //Dit maakt de databases aan als ze nog niet bestaan
         $this->db = new SQLite3($this->getDataFolder() . "PlotArea.db");
-        $this->db->query("CREATE TABLE IF NOT EXISTS chests (chest_id INTEGER PRIMARY KEY AUTOINCREMENT, chest_location TEXT,chest_world TEXT, status TEXT, plot_id INTEGER)");
         $this->db->query("CREATE TABLE IF NOT EXISTS plots(plot_id INTEGER PRIMARY KEY AUTOINCREMENT,plot_name TEXT,plot_owner TEXT, plot_members TEXT, plot_location TEXT, plot_world TEXT, plot_permissions TEXT default NULL,max_members INTEGER, group_name TEXT)");
         $this->db->query("CREATE TABLE IF NOT EXISTS groups(group_id INTEGER PRIMARY KEY AUTOINCREMENT, group_name TEXT, master_plot TEXT)");
         //dit registreert de events
@@ -68,8 +67,7 @@ class Main extends PluginBase implements Listener
             PermissionManager::PLOT_INTERACT_CHESTS => true,
             PermissionManager::PLOT_INTERACT_DOORS => true,
             PermissionManager::PLOT_INTERACT_ITEMFRAMES => true,
-            PermissionManager::PLOT_INTERACT_ARMORSTANDS => true,
-            PermissionManager::PLOT_SET_PINCONSOLE => true
+            PermissionManager::PLOT_SET_PINCONSOLE => true,
         ];
 
 
@@ -290,27 +288,13 @@ class Main extends PluginBase implements Listener
                             if($plot !== null){
                                 if ($sender->hasPermission("pa.staff.plot.flags") || $plot->isOwner($sender->getName())) {
                                     $perm_mngr = new PermissionManager($plot);
-                                    $perms = $perm_mngr->permission_list;
+                                    $perms = PermissionManager::$permission_list;
                                     $perms_text = "§bFlags die je per gebruiker kan instellen:\n";
                                     foreach($perms as $perm => $value){
                                         $perms_text .= TextFormat::DARK_AQUA . $perm . "\n";
                                     }
                                     $sender->sendMessage($perms_text);
-                            }
-                            }
-                            break;
-
-                        case "publicchest":
-                            $plot = Plot::get($sender);
-                            if ($plot !== null) {
-                                if ($sender->hasPermission("pa.staff.plot.publicchest") || $plot->isOwner($sender->getName())) {
-                                    $this->chest_register[$sender->getName()] = true;
-                                    $sender->sendMessage("§aGelieve op de kist te klikken die je openbaar/privé wilt maken.");
-                                } else {
-                                    $sender->sendMessage("§4U hebt geen permissie");
                                 }
-                            } else {
-                                $sender->sendMessage("§4U staat niet op een plot.");
                             }
                             break;
 
@@ -506,6 +490,5 @@ class Main extends PluginBase implements Listener
         return Main::getInstance()->db;
     }
 }
-
 
 
