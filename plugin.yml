@@ -1,6 +1,6 @@
 name: PlotArea
 main: mohagames\PlotArea\Main
-version: 5.6.0
+version: 5.7.0
 api: 3.0.0
 author: Mohagames205
 load: POSTWORLD
