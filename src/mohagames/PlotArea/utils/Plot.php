@@ -13,6 +13,7 @@
 namespace mohagames\PlotArea\utils;
 
 use mohagames\PlotArea\events\PlotAddMemberEvent;
+use mohagames\PlotArea\events\PlotCreateEvent;
 use mohagames\PlotArea\events\PlotDeleteEvent;
 use mohagames\PlotArea\events\PlotRemoveMemberEvent;
 use mohagames\PlotArea\events\PlotResetEvent;
@@ -73,9 +74,10 @@ class Plot extends PermissionManager
      * @param array $location
      * @param string $owner
      * @param array $members
+     * @param Player|null $executor
      * @return Plot
      */
-    public static function save($name, Level $level, array $location, string $owner = null, array $members = array())
+    public static function save($name, Level $level, array $location, string $owner = null, array $members = array(), Player $executor = null)
     {
         if (is_null(Plot::getPlotByName($name))) {
             $db = Main::getInstance()->db;
@@ -93,7 +95,14 @@ class Plot extends PermissionManager
             $stmt->execute();
             $stmt->close();
 
-            return new Plot($name, $owner, $level, $location, $members);
+            $plot = new Plot($name, $owner, $level, $location, $members);
+
+            $ev = new PlotCreateEvent($plot, $executor);
+            $ev->call();
+
+            return $plot;
+
+
         }
     }
 
@@ -438,28 +447,29 @@ class Plot extends PermissionManager
      * @return bool
      * @throws \ReflectionException
      */
-    public function removeMember(string $member, Player $executor = null) : bool{
+    public function removeMember(string $member, Player $executor = null): bool
+    {
         $member = strtolower($member);
-            $old_members = $this->getMembers();
-            $plot_id = $this->getId();
+        $old_members = $this->getMembers();
+        $plot_id = $this->getId();
 
-            if (in_array($member, $old_members)) {
-                $ev = new PlotRemoveMemberEvent($this, $member, $executor);
-                $ev->call();
-                if ($ev->isCancelled()) {
-                    return true;
-                }
-                $members = serialize(array_diff($old_members, array($member)));
-                $stmt = $this->db->prepare("UPDATE plots SET plot_members = :plot_members WHERE plot_id = :plot_id");
-                $stmt->bindParam("plot_members", $members, SQLITE3_TEXT);
-                $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-                $stmt->execute();
-                $stmt->close();
-                $this->destructPlayerPerms($member);
+        if (in_array($member, $old_members)) {
+            $ev = new PlotRemoveMemberEvent($this, $member, $executor);
+            $ev->call();
+            if ($ev->isCancelled()) {
                 return true;
-            } else {
-                return false;
             }
+            $members = serialize(array_diff($old_members, array($member)));
+            $stmt = $this->db->prepare("UPDATE plots SET plot_members = :plot_members WHERE plot_id = :plot_id");
+            $stmt->bindParam("plot_members", $members, SQLITE3_TEXT);
+            $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
+            $stmt->execute();
+            $stmt->close();
+            $this->destructPlayerPerms($member);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

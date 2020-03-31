@@ -25,7 +25,6 @@ class PermissionManager
     public const PLOT_INTERACT_TRAPDOORS = "plot.interact.trapdoors";
     public const PLOT_INTERACT_GATES = "plot.interact.gates";
     public const PLOT_INTERACT_ITEMFRAMES = "plot.interact.itemframes";
-    public const PLOT_INTERACT_ARMORSTANDS = "plot.interact.armorstands";
     public const PLOT_SET_PINCONSOLE = "plot.set.pinconsole";
 
     public static $permission_list;
@@ -114,11 +113,23 @@ class PermissionManager
      */
     protected function destructPlayerPerms(string $player)
     {
+        $plot_id = $this->plot->getId();
         $permission_keys = array_keys(self::$permission_list);
         if ($this->getPlayerPermissions($player) !== null) {
-            foreach ($permission_keys as $perm) {
-                $this->setPermission($player, $perm, false);
+            $allpermissions = $this->getPermissions();
+
+            if (count($allpermissions) > 1) {
+                unset($allpermissions[$player]);
+                $allpermissions = serialize($allpermissions);
+            } else {
+                $allpermissions = null;
             }
+
+            $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions WHERE plot_id = :plot_id");
+            $stmt->bindParam("permissions", $allpermissions);
+            $stmt->bindParam("plot_id", $plot_id);
+            $stmt->execute();
+            $stmt->close();
         }
     }
 
@@ -193,13 +204,13 @@ class PermissionManager
     public static function resetAllPlotPermissions(){
         Main::getInstance()->db->query("UPDATE plots SET plot_permissions = NULL");
         $plots = Plot::getPlots();
-        if($plots !== null){
-            foreach($plots as $plot){
-                    $members = $plot->getMembers();
-                    foreach($members as $member){
-                        $plot->initPlayerPerms($member);
-                        Main::getInstance()->getLogger()->info("Member permissions succesvol ingesteld.");
-                    }
+        if($plots !== null) {
+            foreach ($plots as $plot) {
+                $members = $plot->getMembers();
+                foreach ($members as $member) {
+                    $plot->initPlayerPerms($member);
+                    Main::getInstance()->getLogger()->info("Member permissions succesvol ingesteld.");
+                }
             }
         }
     }
@@ -244,18 +255,22 @@ class PermissionManager
         $plots = Plot::getPlots();
         $permission_list = array_keys(PermissionManager::$permission_list);
         foreach ($plots as $plot) {
+            Main::getInstance()->getLogger()->info("Setting permission of " . $plot->getName());
             foreach ($plot->getMembers() as $member) {
-                $playerpermissions = array_keys($plot->getPlayerPermissions($member));
-                if (!empty(array_diff($playerpermissions, $permission_list)) || !empty(array_diff($permission_list, $playerpermissions))) {
-                    foreach ($permission_list as $perm) {
-                        if (!isset($plot->getPermissions()[$member][$perm])) {
-                            $plot->appendPermission($member, $perm);
+                if ($plot->getPlayerPermissions($member) !== null) {
+                    $playerpermissions = array_keys($plot->getPlayerPermissions($member));
+                    if (!empty(array_diff($playerpermissions, $permission_list)) || !empty(array_diff($permission_list, $playerpermissions))) {
+                        foreach ($permission_list as $perm) {
+                            if (!isset($plot->getPermissions()[$member][$perm])) {
+                                $plot->appendPermission($member, $perm);
+                                Main::getInstance()->getLogger()->info("Setting permission of $member");
+                            }
                         }
-                    }
-                    foreach ($playerpermissions as $perm) {
-                        if (!$plot->exists($perm)) {
-                            $plot->removePermission($member, $perm);
-                            var_dump($plot->getPlayerPermissions($member));
+                        foreach ($playerpermissions as $perm) {
+                            if (!$plot->exists($perm)) {
+                                $plot->removePermission($member, $perm);
+                                Main::getInstance()->getLogger()->info("Setting permission of $member");
+                            }
                         }
                     }
                 }
