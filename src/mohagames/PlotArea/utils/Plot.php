@@ -107,7 +107,7 @@ class Plot extends PermissionManager
     }
 
     /**
-     * This method will search for a Plot for the given Position.
+     * This method will search for a Plot at the given Position.
      *
      * When a plot is grouped this method will return the Master Plot by default
      * If you don't want to get the Master Plot then set the $grouping parameter to false.
@@ -160,14 +160,6 @@ class Plot extends PermissionManager
 
     }
 
-    /**
-     * @return Plot
-     * @deprecated this method is useless and will be removed
-     *
-     */
-    public function getPlot() : Plot{
-        return $this;
-    }
 
     /**
      * This returns the name of the current plot.
@@ -227,16 +219,6 @@ class Plot extends PermissionManager
         return $this->level;
     }
 
-    /**
-     * This method returns the name of the level
-     * @return string
-     *
-     * @see Plot::getLevel()
-     * @deprecated Please use the getLevel() method
-     */
-    public function getLevelName(){
-        return $this->level->getName();
-    }
 
     /**
      * This returns an instance of the Location class and contains all the location info from this Plot.
@@ -285,10 +267,7 @@ class Plot extends PermissionManager
      */
     public function getMembersList(){
         $members = $this->getMembers();
-
-        if (count($members) == 0) {
-            return false;
-        } else {
+        if (count($members) !== 0) {
             $leden = "";
             foreach ($members as $lid) {
                 $leden .= "$lid, ";
@@ -296,6 +275,7 @@ class Plot extends PermissionManager
             $leden = rtrim($leden, ', ');
             return $leden;
         }
+        return false;
     }
 
     /**
