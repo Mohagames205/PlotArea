@@ -135,7 +135,8 @@ class Main extends PluginBase implements Listener
                 $line = "\n§3----------------------------\n";
                 $plot_name = $plot->getName();
                 $owner = $plot->getOwner();
-                $leden = $plot->getMembersList();
+                $members = $plot->getMembers();
+                $leden = count($members) > 0 ? implode(", ", $plot->getMembers()) : "Geen leden";
 
                 if ($sender->hasPermission("pa.staff.devinfo")) {
                     $plot->isGrouped() ? $grpd = "\n§3Grouped: §a✓" : $grpd = "\n§3Grouped: §c✗";
@@ -143,9 +144,7 @@ class Main extends PluginBase implements Listener
                     $grpd = null;
                 }
 
-
                 $owner = is_null($owner) ? "Dit plot is van niemand" : $owner;
-                $leden = $leden ?: "Geen leden";
 
                 $message = $line . "Plot informatie van plot: §b$plot_name\n§3Eigenaar: §b$owner\n§3Leden: §b$leden $grpd" . $line;
                 $sender->sendMessage($message);

@@ -36,6 +36,7 @@ class PermissionManager
      * De permission Manager zorgt ervoor dat alleen de bevoegde leden bepaalde acties kunnen uitvoeren op het Plot
      * De Plot class extend naar de PermissionManager class, dus is het niet nodig om een nieuwe instance aan te maken van de PermissionManager class.
      *
+     *
      * PermissionManager constructor.
      * @param Plot $plot
      */

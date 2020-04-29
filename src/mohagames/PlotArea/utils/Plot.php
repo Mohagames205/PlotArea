@@ -24,10 +24,6 @@ use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\Player;
 
-/*
- *
- * TODO: Alle event methods fixen >_<
- */
 
 class Plot extends PermissionManager
 {
@@ -164,19 +160,10 @@ class Plot extends PermissionManager
     /**
      * This returns the name of the current plot.
      *
-     * @return mixed
+     * @return string
      */
     public function getName(){
-        $plot_id = $this->getId();
-        $stmt = $this->db->prepare("SELECT plot_name FROM plots WHERE plot_id = :plot_id");
-        $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-        $res = $stmt->execute();
-        while($row = $res->fetchArray()){
-            $name = $row["plot_name"];
-        }
-        $stmt->close();
-
-        return $name;
+        return $this->name;
     }
 
     /**
@@ -185,16 +172,7 @@ class Plot extends PermissionManager
      * @return mixed
      */
     public function getOwner(){
-        $plot_id = $this->getId();
-
-        $stmt = $this->db->prepare("SELECT plot_owner FROM plots WHERE plot_id = :plot_id");
-        $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-        $res = $stmt->execute();
-        while($row = $res->fetchArray()){
-            $owner = $row["plot_owner"];
-        }
-        $stmt->close();
-        return $owner;
+        return $this->owner;
     }
 
     /**
@@ -248,7 +226,7 @@ class Plot extends PermissionManager
     }
 
     /**
-     * This method checks if the given player is an member of the Plot
+     * This method checks if the given player is a member of the Plot
      *
      * @param $member
      * @return bool
@@ -261,9 +239,11 @@ class Plot extends PermissionManager
     }
 
     /**
+     * @return bool|string
+     * @deprecated gebruik de join() functie pls
+     *
      * This method returns a string of all the members of the plot
      *
-     * @return bool|string
      */
     public function getMembersList(){
         $members = $this->getMembers();
@@ -331,6 +311,7 @@ class Plot extends PermissionManager
             if ($ev->isCancelled()) {
                 return true;
             }
+            $this->owner = $owner;
             $plot_id = $this->getId();
             $stmt = $this->db->prepare("UPDATE plots SET plot_owner = :plot_owner WHERE plot_id = :plot_id");
             $stmt->bindParam("plot_owner", $owner, SQLITE3_TEXT);
@@ -425,7 +406,6 @@ class Plot extends PermissionManager
      * @param string $member
      * @param Player|null $executor The Player who executed the command
      * @return bool
-     * @throws \ReflectionException
      */
     public function removeMember(string $member, Player $executor = null) : bool{
         $member = strtolower($member);
