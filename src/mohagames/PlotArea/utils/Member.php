@@ -27,7 +27,6 @@ class Member
             return file_exists("players/$playername.dat");
         }
         return false;
-
     }
 
 }
