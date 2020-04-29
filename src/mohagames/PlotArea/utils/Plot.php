@@ -107,7 +107,7 @@ class Plot extends PermissionManager
     }
 
     /**
-     * This method will search for a Plot for the given Position.
+     * This method will search for a Plot at the given Position.
      *
      * When a plot is grouped this method will return the Master Plot by default
      * If you don't want to get the Master Plot then set the $grouping parameter to false.
@@ -160,14 +160,6 @@ class Plot extends PermissionManager
 
     }
 
-    /**
-     * @return Plot
-     * @deprecated this method is useless and will be removed
-     *
-     */
-    public function getPlot() : Plot{
-        return $this;
-    }
 
     /**
      * This returns the name of the current plot.
@@ -227,16 +219,6 @@ class Plot extends PermissionManager
         return $this->level;
     }
 
-    /**
-     * This method returns the name of the level
-     * @return string
-     *
-     * @see Plot::getLevel()
-     * @deprecated Please use the getLevel() method
-     */
-    public function getLevelName(){
-        return $this->level->getName();
-    }
 
     /**
      * This returns an instance of the Location class and contains all the location info from this Plot.
@@ -285,10 +267,7 @@ class Plot extends PermissionManager
      */
     public function getMembersList(){
         $members = $this->getMembers();
-
-        if (count($members) == 0) {
-            return false;
-        } else {
+        if (count($members) !== 0) {
             $leden = "";
             foreach ($members as $lid) {
                 $leden .= "$lid, ";
@@ -296,6 +275,7 @@ class Plot extends PermissionManager
             $leden = rtrim($leden, ', ');
             return $leden;
         }
+        return false;
     }
 
     /**
@@ -447,29 +427,28 @@ class Plot extends PermissionManager
      * @return bool
      * @throws \ReflectionException
      */
-    public function removeMember(string $member, Player $executor = null): bool
-    {
+    public function removeMember(string $member, Player $executor = null) : bool{
         $member = strtolower($member);
-        $old_members = $this->getMembers();
-        $plot_id = $this->getId();
+            $old_members = $this->getMembers();
+            $plot_id = $this->getId();
 
-        if (in_array($member, $old_members)) {
-            $ev = new PlotRemoveMemberEvent($this, $member, $executor);
-            $ev->call();
-            if ($ev->isCancelled()) {
+            if (in_array($member, $old_members)) {
+                $ev = new PlotRemoveMemberEvent($this, $member, $executor);
+                $ev->call();
+                if ($ev->isCancelled()) {
+                    return true;
+                }
+                $members = serialize(array_diff($old_members, array($member)));
+                $stmt = $this->db->prepare("UPDATE plots SET plot_members = :plot_members WHERE plot_id = :plot_id");
+                $stmt->bindParam("plot_members", $members, SQLITE3_TEXT);
+                $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
+                $stmt->execute();
+                $stmt->close();
+                $this->destructPlayerPerms($member);
                 return true;
+            } else {
+                return false;
             }
-            $members = serialize(array_diff($old_members, array($member)));
-            $stmt = $this->db->prepare("UPDATE plots SET plot_members = :plot_members WHERE plot_id = :plot_id");
-            $stmt->bindParam("plot_members", $members, SQLITE3_TEXT);
-            $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-            $stmt->execute();
-            $stmt->close();
-            $this->destructPlayerPerms($member);
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
