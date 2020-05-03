@@ -37,7 +37,7 @@ class PositioningTask extends Task{
                     $this->isInPlot[$player->getName()] = null;
                 }
                 $status = $this->isInPlot[$player->getName()];
-                if($plot->getId() !== $status ){
+                if ($plot->getId() !== $status) {
                     $ev = new PlotEnterEvent($player, $plot);
                     $ev->call();
                     $text = $plot->getOwner() ? $plot->getOwner() : "§aGeen eigenaar";
