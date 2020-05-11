@@ -28,6 +28,7 @@ use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
+use ReflectionException;
 use SQLite3;
 
 class Main extends PluginBase implements Listener
@@ -67,10 +68,7 @@ class Main extends PluginBase implements Listener
             PermissionManager::PLOT_INTERACT_CHESTS => true,
             PermissionManager::PLOT_INTERACT_DOORS => true,
             PermissionManager::PLOT_INTERACT_ITEMFRAMES => true,
-            PermissionManager::PLOT_INTERACT_ARMORSTANDS => true,
-            PermissionManager::PLOT_SET_PINCONSOLE => true,
-            PermissionManager::PLOT_INTERACT_HOPPER => true,
-            PermissionManager::PLOT_LOCK_CHESTS => true
+            PermissionManager::PLOT_SET_PINCONSOLE => true
         ];
 
 
@@ -83,7 +81,7 @@ class Main extends PluginBase implements Listener
      * @param string $label
      * @param array $args
      * @return bool
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool
     {
@@ -502,7 +500,7 @@ class Main extends PluginBase implements Listener
                 return true;
 
             case "flushperms":
-                if($sender instanceof ConsoleCommandSender){
+                if ($sender instanceof ConsoleCommandSender) {
                     PermissionManager::resetAllPlotPermissions();
                     $sender->sendMessage("Perms have been cleared succesfully!");
                 }
