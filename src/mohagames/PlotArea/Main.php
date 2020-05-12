@@ -117,7 +117,7 @@ class Main extends PluginBase implements Listener
                 unset($this->pos_1[$sender->getName()]);
                 unset($this->pos_2[$sender->getName()]);
 
-                Plot::save($p_name, $sender->getLevel(), array($pos1, $pos2), $sender);
+                Plot::save($p_name, $sender->getLevel(), array($pos1, $pos2), null, [], $sender);
                 $sender->sendMessage("§2Het plot §a$p_name §2is succesvol opgeslagen!");
                 return true;
 
