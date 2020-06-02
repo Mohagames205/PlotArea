@@ -28,6 +28,7 @@ use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
+use ReflectionException;
 use SQLite3;
 
 class Main extends PluginBase implements Listener
@@ -83,7 +84,7 @@ class Main extends PluginBase implements Listener
      * @param string $label
      * @param array $args
      * @return bool
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool
     {
@@ -118,8 +119,9 @@ class Main extends PluginBase implements Listener
                 $pos2 = $this->pos_2[$sender->getName()];
                 unset($this->pos_1[$sender->getName()]);
                 unset($this->pos_2[$sender->getName()]);
-
-                Plot::save($p_name, $sender->getLevel(), array($pos1, $pos2), $sender);
+            
+                Plot::save($p_name, $sender->getLevel(), array($pos1, $pos2), null, [], $sender);
+            
                 $sender->sendMessage("§2Het plot §a$p_name §2is succesvol opgeslagen!");
                 return true;
 
@@ -254,11 +256,13 @@ class Main extends PluginBase implements Listener
                             if (!$sender->hasPermission("pa.staff.plot.delete")) {
                                 $sender->sendMessage("§4U hebt geen permissies");
                                 return true;
+
                             }
                             if (is_null($plot)) {
                                 $sender->sendMessage("§4U staat niet op een plot.");
                                 return true;
                             }
+
 
                             $plot->delete($sender);
                             $sender->sendMessage("§aHet plot is succesvol verwijderd");
@@ -292,6 +296,7 @@ class Main extends PluginBase implements Listener
                             if (strtolower($args[3]) == "true") {
                                 $bool = true;
                             }
+                        
                             $res = $plot->setPermission($args[1], $args[2], $bool);
 
                             if ($res === false) {
@@ -313,11 +318,13 @@ class Main extends PluginBase implements Listener
                                 $sender->sendMessage("§4U hebt geen permissie");
                                 return true;
                             }
+                        
                             $perms = PermissionManager::$permission_list;
                             $perms_text = "§bFlags die je per gebruiker kan instellen:\n";
                             foreach ($perms as $perm => $value) {
                                 $perms_text .= TextFormat::DARK_AQUA . $perm . "\n";
                             }
+
                             $sender->sendMessage($perms_text);
 
                             break;
@@ -364,6 +371,7 @@ class Main extends PluginBase implements Listener
                                 $sender->sendMessage("§4Gelieve een groepnaam en slavenplot op te geven. §c/plot creategroup [groepnaam] [slavenplot]");
                                 return true;
                             }
+
                             $plot = Plot::get($sender);
                             $link_plot = Plot::getPlotByName($args[2]);
                             if (is_null($plot) || is_null($link_plot)) {
@@ -502,7 +510,7 @@ class Main extends PluginBase implements Listener
                 return true;
 
             case "flushperms":
-                if($sender instanceof ConsoleCommandSender){
+                if ($sender instanceof ConsoleCommandSender) {
                     PermissionManager::resetAllPlotPermissions();
                     $sender->sendMessage("Perms have been cleared succesfully!");
                 }
@@ -525,6 +533,5 @@ class Main extends PluginBase implements Listener
         return Main::getInstance()->db;
     }
 }
-
 
 

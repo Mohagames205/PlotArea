@@ -1,6 +1,6 @@
 name: PlotArea
 main: mohagames\PlotArea\Main
-version: 5.7.0-A
+version: 5.8.0-A
 api: 3.0.0
 author: Mohagames205
 load: POSTWORLD
@@ -58,8 +58,6 @@ permissions:
         default: op
       pa.staff.plot.setflag:
         description: Allows the user to use the /plot setflag command
-        default: op
-      pa.staff.plot.publicchest:
         default: op
       pa.staff.plot.setmaxmembers:
         default: op
