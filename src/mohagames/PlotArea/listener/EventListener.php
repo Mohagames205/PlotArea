@@ -18,14 +18,17 @@ use mohagames\PlotArea\utils\Plot;
 use pocketmine\block\Chest;
 use pocketmine\block\Door;
 use pocketmine\block\FenceGate;
+use pocketmine\block\Hopper;
 use pocketmine\block\ItemFrame;
 use pocketmine\block\Trapdoor;
 use pocketmine\entity\object\ArmorStand;
 use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEntityEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
+use pocketmine\Player;
 
 class EventListener implements Listener
 {
@@ -50,7 +53,6 @@ class EventListener implements Listener
                 if ($plot->hasPermission($player->getName(), PermissionManager::PLOT_INTERACT_CHESTS) || $player->hasPermission("pa.staff.interactbypass")) {
                     return;
                 }
-
                 $player->sendPopup("§4U kan deze actie niet uitvoeren.");
                 $e->setCancelled();
 
@@ -129,6 +131,51 @@ class EventListener implements Listener
                     $e->getPlayer()->sendPopup("§4U kan deze actie niet uitvoeren.");
                     $e->setCancelled();
                 }
+            }
+        }
+    }
+
+    public function armorStandInteraction(PlayerInteractEntityEvent $e)
+    {
+        if ($e->getEntity() instanceof ArmorStand) {
+            $plot = Plot::get($e->getEntity());
+            if ($plot !== null) {
+                if ($plot->hasPermission($e->getPlayer()->getName(), PermissionManager::PLOT_INTERACT_ARMORSTANDS) || $e->getPlayer()->hasPermission("pa.staff.interactbypass")) {
+                    return;
+                }
+                $e->getPlayer()->sendPopup("§4U kan deze actie niet uitvoeren.");
+                $e->setCancelled();
+            }
+        }
+    }
+
+    public function onArmorStandBreak(EntityDamageByEntityEvent $e)
+    {
+        $damager = $e->getDamager();
+        if ($damager instanceof Player) {
+            if ($damager->getGamemode() == Player::CREATIVE) {
+                return;
+            }
+            if ($e->getEntity() instanceof ArmorStand) {
+                $damager->sendPopup("§4U kan deze actie niet uitvoeren.");
+                $e->setCancelled();
+            }
+        }
+
+    }
+
+    public function onHopperInteract(PlayerInteractEvent $e)
+    {
+        $block = $e->getBlock();
+        if ($block instanceof Hopper) {
+            $plot = Plot::get($block);
+            if ($plot !== null) {
+                if ($plot->hasPermission($e->getPlayer()->getName(), PermissionManager::PLOT_INTERACT_HOPPER) || $e->getPlayer()->hasPermission("pa.staff.interactbypass")) {
+                    return;
+                }
+                $e->getPlayer()->sendPopup("§4U kan deze actie niet uitvoeren.");
+                $e->setCancelled();
+
             }
         }
     }
