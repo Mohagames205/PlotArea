@@ -22,7 +22,7 @@ class PlotSetGroupnameEvent extends PlotEvent implements Cancellable
     private $grouname;
     private $player;
 
-    public function __construct(Plot $plot, ?string $grouname, ?Player $executor = null)
+    public function __construct(Plot $plot, string $grouname, ?Player $executor = null)
     {
         $this->grouname = $grouname;
         $this->plot = $plot;
@@ -39,7 +39,7 @@ class PlotSetGroupnameEvent extends PlotEvent implements Cancellable
         return $this->plot;
     }
 
-    public function getGroupName(): ?string
+    public function getGroupName(): string
     {
         return $this->grouname;
     }
