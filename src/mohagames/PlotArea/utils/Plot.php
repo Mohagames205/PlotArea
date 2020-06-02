@@ -80,7 +80,7 @@ class Plot extends PermissionManager
      * @param string $owner
      * @param array $members
      * @param Player|null $executor
-     * @return Plot
+     * @return Plot|bool
      */
     public static function save($name, Level $level, array $location, string $owner = null, array $members = array(), Player $executor = null)
     {
@@ -106,9 +106,8 @@ class Plot extends PermissionManager
             $ev->call();
 
             return $plot;
-
-
         }
+        return false;
     }
 
     /**
@@ -162,7 +161,7 @@ class Plot extends PermissionManager
             }
         }
 
-        return isset($found_plot) ? $found_plot : null;
+        return $found_plot ?? null;
 
     }
 
@@ -328,12 +327,10 @@ class Plot extends PermissionManager
         $loc = serialize($this->getLocation()->getArrayedLocation());
         $conn->bindParam("location", $loc, SQLITE3_TEXT);
         $conn->bindParam("plot_world", $worldname, SQLITE3_TEXT);
-        $result = $conn->execute();
-        while ($row = $result->fetchArray()) {
-            return $row["plot_id"];
-            break;
-        }
+        $result = $conn->execute()->fetchArray(SQLITE3_ASSOC);
         $conn->close();
+
+        return $result["plot_id"];
     }
 
     /**
@@ -360,9 +357,8 @@ class Plot extends PermissionManager
             $stmt->execute();
             $stmt->close();
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -421,10 +417,9 @@ class Plot extends PermissionManager
         $plot_id = $this->getId();
         $stmt = $this->db->prepare("SELECT max_members FROM plots WHERE plot_id = :plot_id");
         $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-        $res = $stmt->execute();
-        while ($row = $res->fetchArray()) {
-            return $row["max_members"];
-        }
+        $res = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+
+        return $res["max_members"];
     }
 
     /**
@@ -470,9 +465,8 @@ class Plot extends PermissionManager
             $stmt->close();
             $this->destructPlayerPerms($member);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -515,9 +509,8 @@ class Plot extends PermissionManager
 
         if (isset($group_name) && !is_null($group_name)) {
             return $group_name;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -576,8 +569,10 @@ class Plot extends PermissionManager
         $res = Main::getInstance()->db->query("SELECT * FROM plots");
         $plots = [];
         while ($row = $res->fetchArray()) {
-
-            $plots[] = Plot::getPlotById($row["plot_id"]);
+            $plot = Plot::getPlotById($row["plot_id"]);
+            if (!is_null($plot)) {
+                $plots[] = $plot;
+            }
         }
         return $plots;
     }
@@ -594,7 +589,7 @@ class Plot extends PermissionManager
         $stmt = $main->db->prepare("SELECT * FROM plots WHERE plot_id = :id");
         $stmt->bindParam("id", $id, SQLITE3_INTEGER);
         $res = $stmt->execute();
-        $plot = null;
+
         while ($row = $res->fetchArray()) {
             $world = null;
             if ($main->getServer()->isLevelLoaded($row["plot_world"])) {
@@ -609,7 +604,7 @@ class Plot extends PermissionManager
                 $plot = new Plot($row["plot_name"], $row["plot_owner"], $world, unserialize($row["plot_location"]), unserialize($row["plot_members"]));
             }
         }
-        return isset($plot) ? $plot : null;
+        return $plot ?? null;
     }
 
     /**
@@ -637,7 +632,7 @@ class Plot extends PermissionManager
             }
         }
 
-        return isset($plot) ? $plot : null;
+        return $plot ?? null;
 
     }
 

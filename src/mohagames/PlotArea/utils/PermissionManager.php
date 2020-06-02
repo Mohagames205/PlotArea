@@ -69,20 +69,18 @@ class PermissionManager
                     $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
                     $stmt->execute();
                     return true;
-                } else {
-                    $permissions = self::$permission_list;
-                    $permissions[$permission] = $boolean;
-                    $perms = serialize([$player => $permissions]);
-                    $stmt = $this->db->prepare("UPDATE plots SET plot_permissions = :plot_permissions WHERE plot_id = plot_id");
-                    $stmt->bindParam("plot_permissions", $perms, SQLITE3_TEXT);
-                    $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-                    $stmt->execute();
-                    return true;
                 }
-            } else {
-                return false;
+                $permissions = self::$permission_list;
+                $permissions[$permission] = $boolean;
+                $perms = serialize([$player => $permissions]);
+                $stmt = $this->db->prepare("UPDATE plots SET plot_permissions = :plot_permissions WHERE plot_id = plot_id");
+                $stmt->bindParam("plot_permissions", $perms, SQLITE3_TEXT);
+                $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
+                $stmt->execute();
+                return true;
             }
         }
+        return false;
     }
 
     /**

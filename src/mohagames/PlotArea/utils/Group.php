@@ -91,39 +91,6 @@ class Group
         return $group;
     }
 
-
-    /**
-     * @param $group_name
-     * @param Plot $master_plot
-     * @param Plot $second_plot
-     * @return bool
-     * @throws \ReflectionException
-     * @see Group::save()
-     *
-     * de saveGroup method maakt een nieuwe Group aan in de database en maakt de gegeven Plot een Master Plot en het 2de gegeven Plot een member plot.
-     *
-     * @deprecated Deze method wordt binnenkort verwijderd en vervangen door een method met een andere naam
-     */
-    public static function saveGroup($group_name, Plot $master_plot, Plot $second_plot)
-    {
-        $db = Main::getInstance()->db;
-
-        if ($master_plot !== null && $second_plot !== null) {
-            if ($master_plot->getName() != $second_plot->getName()) {
-                $master_plot->setGroupName($group_name);
-                $second_plot->setGroupName($group_name);
-                $master_plot = $master_plot->getName();
-                $stmt = $db->prepare("INSERT INTO groups (group_name, master_plot) values(:group_name, :master_plot)");
-                $stmt->bindParam("group_name", $group_name, SQLITE3_TEXT);
-                $stmt->bindParam("master_plot", $master_plot, SQLITE3_TEXT);
-                $stmt->execute();
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
     /**
      * de save method maakt een nieuwe Group aan in de database en maakt de gegeven Plot een Master Plot en het 2de gegeven Plot een member plot.
      *
@@ -147,28 +114,9 @@ class Group
                 $stmt->bindParam("master_plot", $master_plot, SQLITE3_TEXT);
                 $stmt->execute();
                 return true;
-            } else {
-                return false;
             }
         }
-    }
-
-    /**
-     * @return int
-     * @see Group::getId()
-     *
-     * Deze method returned de ID van de Group
-     *
-     * @deprecated Deze method wordt binnenkort verwijderd en vervangen door een method met een andere naam
-     */
-    public function getGroupId(): int
-    {
-        $stmt = $this->db->prepare("SELECT group_id FROM groups WHERE group_name = :group_name");
-        $stmt->bindParam("group_name", $this->group_name, SQLITE3_TEXT);
-        $res = $stmt->execute();
-        while ($row = $res->fetchArray()) {
-            return $row["group_id"];
-        }
+        return false;
     }
 
     /**
@@ -176,14 +124,14 @@ class Group
      *
      * @return int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         $stmt = $this->db->prepare("SELECT group_id FROM groups WHERE group_name = :group_name");
         $stmt->bindParam("group_name", $this->group_name, SQLITE3_TEXT);
-        $res = $stmt->execute();
-        while ($row = $res->fetchArray()) {
-            return $row["group_id"];
-        }
+        $res = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+        $stmt->close();
+
+        return $res["group_id"] ?? null;
     }
 
     /**
@@ -191,17 +139,15 @@ class Group
      *
      * @return mixed
      */
-    public function getName()
+    public function getName(): ?string
     {
         $group_id = $this->getId();
         $stmt = $this->db->prepare("SELECT group_name FROM groups WHERE group_id = :group_id");
         $stmt->bindParam("group_id", $group_id, SQLITE3_INTEGER);
-        $res = $stmt->execute();
-        while ($row = $res->fetchArray()) {
-            $name = $row["group_name"];
-        }
+        $res = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+        $stmt->close();
 
-        return $name;
+        return $res["group_name"] ?? null;
     }
 
     /**
