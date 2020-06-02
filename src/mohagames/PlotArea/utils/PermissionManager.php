@@ -25,7 +25,6 @@ class PermissionManager
     public const PLOT_INTERACT_TRAPDOORS = "plot.interact.trapdoors";
     public const PLOT_INTERACT_GATES = "plot.interact.gates";
     public const PLOT_INTERACT_ITEMFRAMES = "plot.interact.itemframes";
-    public const PLOT_INTERACT_ARMORSTANDS = "plot.interact.armorstands";
     public const PLOT_SET_PINCONSOLE = "plot.set.pinconsole";
     public const PLOT_INTERACT_HOPPER = "plot.interact.hopper";
     public const PLOT_LOCK_CHESTS = "plot.lock.chests";
@@ -111,7 +110,6 @@ class PermissionManager
         }
     }
 
-
     protected function destructPlayerPerms(string $player)
     {
         $plot_id = $this->plot->getId();
@@ -146,11 +144,8 @@ class PermissionManager
         $player = strtolower($player);
         if (isset($permissions[$player])) {
             return $permissions[$player];
-        } else {
-            return null;
         }
-
-
+        return null;
     }
 
     /**
@@ -188,30 +183,28 @@ class PermissionManager
     {
         if ($this->plot->isOwner($player)) {
             return true;
-        } elseif ($this->plot->isMember($player)) {
+        }
+        if ($this->plot->isMember($player)) {
             if ($this->exists($permission)) {
                 $player = strtolower($player);
                 $player_perms = $this->getPlayerPermissions($player);
                 return $player_perms[$permission];
-            } else {
-                return null;
             }
-        }else{
-            return false;
         }
-
+        return false;
     }
 
-    public static function resetAllPlotPermissions(){
+    public static function resetAllPlotPermissions()
+    {
         Main::getInstance()->db->query("UPDATE plots SET plot_permissions = NULL");
         $plots = Plot::getPlots();
-        if($plots !== null){
-            foreach($plots as $plot){
-                    $members = $plot->getMembers();
-                    foreach($members as $member){
-                        $plot->initPlayerPerms($member);
-                        Main::getInstance()->getLogger()->info("Member permissions succesvol ingesteld.");
-                    }
+        if ($plots !== null) {
+            foreach ($plots as $plot) {
+                $members = $plot->getMembers();
+                foreach ($members as $member) {
+                    $plot->initPlayerPerms($member);
+                    Main::getInstance()->getLogger()->info("Member permissions succesvol ingesteld.");
+                }
             }
         }
     }
@@ -223,29 +216,44 @@ class PermissionManager
 
     }
 
-    public function appendPermission(string $player, string $permission)
+    /**
+     * @param string $player
+     * @param string $permission
+     *
+     */
+    protected function appendPermission(string $player, string $permission)
     {
         $allpermissions = $this->plot->getPermissions();
+        $plot_id = $this->plot->getId();
 
         $allpermissions[$player][$permission] = true;
 
         $allpermissions = serialize($allpermissions);
 
-        $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions");
+        $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions WHERE plot_id = :plot_id");
         $stmt->bindParam("permissions", $allpermissions);
+        $stmt->bindParam("plot_id", $plot_id);
         $stmt->execute();
         $stmt->close();
     }
 
+
+    /**
+     * @param string $player
+     * @param string $permission
+     *
+     */
     protected function removePermission(string $player, string $permission)
     {
 
         $allpermissions = $this->getPermissions();
+        $plot_id = $this->plot->getId();
 
         unset($allpermissions[$player][$permission]);
         $allpermissions = serialize($allpermissions);
-        $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions");
+        $stmt = Main::getDb()->prepare("UPDATE plots SET plot_permissions = :permissions WHERE plot_id = :plot_id");
         $stmt->bindParam("permissions", $allpermissions);
+        $stmt->bindParam("plot_id", $plot_id);
         $stmt->execute();
         $stmt->close();
 

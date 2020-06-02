@@ -23,20 +23,24 @@ use mohagames\PlotArea\Main;
 use pocketmine\level\Level;
 use pocketmine\level\Position;
 use pocketmine\Player;
+use ReflectionException;
 
-/*
+
+/**
+ * Class Plot
+ * @package mohagames\PlotArea\utils
  *
- * TODO: Alle event methods fixen >_<
+ * @warning De plot class zal binnenkort niet meer extenden naar de PermissionManager class, maar naar de Location class.
  */
-
 class Plot extends PermissionManager
 {
-    protected $name;
-    protected $owner;
-    protected $level;
-    protected $location;
-    protected $members;
-    protected $plot_id;
+    private $name;
+    private $owner;
+    private $level;
+    private $location;
+    private $members;
+    private $plot_id;
+    private $permission_manager;
     public $db;
     public $main;
 
@@ -60,6 +64,7 @@ class Plot extends PermissionManager
         $this->level = $level;
         $this->owner = $owner;
         $this->location = new Location($location);
+        $this->permission_manager = new PermissionManager($this);
         $this->members = $members;
         $this->db = Main::getInstance()->db;
         $this->main = Main::getInstance();
@@ -116,7 +121,8 @@ class Plot extends PermissionManager
      * @param bool $grouping
      * @return Plot|null
      */
-    public static function get(Position $position, bool $grouping = true) : ?Plot {
+    public static function get(Position $position, bool $grouping = true): ?Plot
+    {
         $main = Main::getInstance();
         $result = $main->db->query("SELECT * FROM plots");
         while ($row = $result->fetchArray()) {
@@ -166,12 +172,13 @@ class Plot extends PermissionManager
      *
      * @return mixed
      */
-    public function getName(){
+    public function getName()
+    {
         $plot_id = $this->getId();
         $stmt = $this->db->prepare("SELECT plot_name FROM plots WHERE plot_id = :plot_id");
         $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
             $name = $row["plot_name"];
         }
         $stmt->close();
@@ -179,18 +186,24 @@ class Plot extends PermissionManager
         return $name;
     }
 
+    public function getPermissionManager(): PermissionManager
+    {
+        return $this->permission_manager;
+    }
+
     /**
      * This returns the name of the current plot owner
      *
      * @return mixed
      */
-    public function getOwner(){
+    public function getOwner()
+    {
         $plot_id = $this->getId();
 
         $stmt = $this->db->prepare("SELECT plot_owner FROM plots WHERE plot_id = :plot_id");
         $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
             $owner = $row["plot_owner"];
         }
         $stmt->close();
@@ -203,7 +216,8 @@ class Plot extends PermissionManager
      * @param string $player
      * @return bool
      */
-    public function isOwner(string $player) : bool{
+    public function isOwner(string $player): bool
+    {
         $owner = $this->getOwner();
 
         return strtolower($player) == $owner;
@@ -215,7 +229,8 @@ class Plot extends PermissionManager
      *
      * @return Level
      */
-    public function getLevel(){
+    public function getLevel()
+    {
         return $this->level;
     }
 
@@ -225,7 +240,8 @@ class Plot extends PermissionManager
      *
      * @return Location
      */
-    public function getLocation(){
+    public function getLocation()
+    {
         return $this->location;
     }
 
@@ -234,13 +250,14 @@ class Plot extends PermissionManager
      *
      * @return mixed
      */
-    public function getMembers(){
+    public function getMembers()
+    {
         $plot_id = $this->getId();
 
         $stmt = $this->db->prepare("SELECT plot_members FROM plots WHERE plot_id = :plot_id");
         $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
             $members = unserialize($row["plot_members"]);
         }
         $stmt->close();
@@ -253,7 +270,8 @@ class Plot extends PermissionManager
      * @param $member
      * @return bool
      */
-    public function isMember($member) : bool{
+    public function isMember($member): bool
+    {
         $members = $this->getMembers();
 
         $member = strtolower($member);
@@ -265,7 +283,8 @@ class Plot extends PermissionManager
      *
      * @return bool|string
      */
-    public function getMembersList(){
+    public function getMembersList()
+    {
         $members = $this->getMembers();
         if (count($members) !== 0) {
             $leden = "";
@@ -283,7 +302,8 @@ class Plot extends PermissionManager
      *
      * @return array
      */
-    public function getSize() : array {
+    public function getSize(): array
+    {
         $loc = $this->getLocation();
         $loc = $loc->calculateCoords();
         $pos1 = $loc->getPos1();
@@ -301,14 +321,15 @@ class Plot extends PermissionManager
      *
      * @return int
      */
-    public function getId() : int{
+    public function getId(): int
+    {
         $worldname = $this->level->getFolderName();
         $conn = $this->db->prepare("SELECT plot_id FROM plots WHERE plot_location = :location AND plot_world = :plot_world");
         $loc = serialize($this->getLocation()->getArrayedLocation());
         $conn->bindParam("location", $loc, SQLITE3_TEXT);
         $conn->bindParam("plot_world", $worldname, SQLITE3_TEXT);
         $result = $conn->execute();
-        while($row = $result->fetchArray()){
+        while ($row = $result->fetchArray()) {
             return $row["plot_id"];
             break;
         }
@@ -321,9 +342,10 @@ class Plot extends PermissionManager
      * @param null $owner
      * @param Player|null $executor The Player who executed the command
      * @return bool
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function setOwner($owner = null, Player $executor = null) : bool{
+    public function setOwner($owner = null, Player $executor = null): bool
+    {
         $owner = $owner ? strtolower($owner) : null;
         if (Member::exists($owner) || is_null($owner)) {
             $ev = new PlotSetOwnerEvent($this, $owner, $executor);
@@ -338,8 +360,7 @@ class Plot extends PermissionManager
             $stmt->execute();
             $stmt->close();
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
@@ -350,9 +371,10 @@ class Plot extends PermissionManager
      * @param string $member
      * @param Player|null $executor The Player who executed the command
      * @return bool
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function addMember(string $member, Player $executor = null) : bool{
+    public function addMember(string $member, Player $executor = null): bool
+    {
         $member = strtolower($member);
         if (Member::exists($member)) {
             $members = $this->getMembers();
@@ -383,8 +405,7 @@ class Plot extends PermissionManager
             } else {
                 return false;
             }
-        }
-        else{
+        } else {
             return false;
         }
     }
@@ -395,12 +416,13 @@ class Plot extends PermissionManager
      *
      * @return int
      */
-    public function getMaxMembers() : int{
+    public function getMaxMembers(): int
+    {
         $plot_id = $this->getId();
         $stmt = $this->db->prepare("SELECT max_members FROM plots WHERE plot_id = :plot_id");
         $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
             return $row["max_members"];
         }
     }
@@ -410,7 +432,8 @@ class Plot extends PermissionManager
      *
      * @param int $max_count
      */
-    public function setMaxMembers(int $max_count){
+    public function setMaxMembers(int $max_count)
+    {
         $plot_id = $this->getId();
         $stmt = $this->db->prepare("UPDATE plots SET max_members = :max_members WHERE plot_id = :plot_id");
         $stmt->bindParam("max_members", $max_count, SQLITE3_INTEGER);
@@ -425,30 +448,31 @@ class Plot extends PermissionManager
      * @param string $member
      * @param Player|null $executor The Player who executed the command
      * @return bool
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function removeMember(string $member, Player $executor = null) : bool{
+    public function removeMember(string $member, Player $executor = null): bool
+    {
         $member = strtolower($member);
-            $old_members = $this->getMembers();
-            $plot_id = $this->getId();
+        $old_members = $this->getMembers();
+        $plot_id = $this->getId();
 
-            if (in_array($member, $old_members)) {
-                $ev = new PlotRemoveMemberEvent($this, $member, $executor);
-                $ev->call();
-                if ($ev->isCancelled()) {
-                    return true;
-                }
-                $members = serialize(array_diff($old_members, array($member)));
-                $stmt = $this->db->prepare("UPDATE plots SET plot_members = :plot_members WHERE plot_id = :plot_id");
-                $stmt->bindParam("plot_members", $members, SQLITE3_TEXT);
-                $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
-                $stmt->execute();
-                $stmt->close();
-                $this->destructPlayerPerms($member);
+        if (in_array($member, $old_members)) {
+            $ev = new PlotRemoveMemberEvent($this, $member, $executor);
+            $ev->call();
+            if ($ev->isCancelled()) {
                 return true;
-            } else {
-                return false;
             }
+            $members = serialize(array_diff($old_members, array($member)));
+            $stmt = $this->db->prepare("UPDATE plots SET plot_members = :plot_members WHERE plot_id = :plot_id");
+            $stmt->bindParam("plot_members", $members, SQLITE3_TEXT);
+            $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
+            $stmt->execute();
+            $stmt->close();
+            $this->destructPlayerPerms($member);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -456,7 +480,7 @@ class Plot extends PermissionManager
      *
      * @param string|null $name
      * @param Player|null $executor The Player who executed the command
-     * @throws \ReflectionException
+     * @throws ReflectionException
      * @see Group::addToGroup()
      *
      */
@@ -484,15 +508,14 @@ class Plot extends PermissionManager
         $stmt = $this->db->prepare("SELECT group_name FROM plots WHERE plot_id = :plot_id");
         $stmt->bindParam("plot_id", $plot_id, SQLITE3_INTEGER);
         $res = $stmt->execute();
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
             $group_name = $row["group_name"];
         }
         $stmt->close();
 
-        if(isset($group_name) && !is_null($group_name)){
+        if (isset($group_name) && !is_null($group_name)) {
             return $group_name;
-        }
-        else{
+        } else {
             return false;
         }
     }
@@ -502,14 +525,15 @@ class Plot extends PermissionManager
      *
      * @return Group|null
      */
-    public function getGroup() : ?Group{
+    public function getGroup(): ?Group
+    {
         $group_name = $this->getGroupName();
         $db = $this->db;
         $stmt = $db->prepare("SELECT * FROM groups WHERE group_name = :group_name");
         $stmt->bindParam("group_name", $group_name, SQLITE3_TEXT);
         $res = $stmt->execute();
         $group = null;
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
             $group = new Group($row["group_name"], Plot::getPlotByName($row["master_plot"]));
         }
         return $group;
@@ -521,7 +545,8 @@ class Plot extends PermissionManager
      *
      * @return bool
      */
-    public function isGrouped(){
+    public function isGrouped()
+    {
         return $this->getGroup() !== null;
     }
 
@@ -531,11 +556,11 @@ class Plot extends PermissionManager
      *
      * @return bool|null
      */
-    public function isMasterPlot() : ?bool{
-        if($this->isGrouped()){
+    public function isMasterPlot(): ?bool
+    {
+        if ($this->isGrouped()) {
             $exp = $this->getGroup()->getMasterPlot()->getName() == $this->getName();
-        }
-        else{
+        } else {
             return null;
         }
         return $exp;
@@ -546,10 +571,11 @@ class Plot extends PermissionManager
      *
      * @return Plot[]
      */
-    public static function getPlots() : array{
+    public static function getPlots(): array
+    {
         $res = Main::getInstance()->db->query("SELECT * FROM plots");
         $plots = [];
-        while($row = $res->fetchArray()){
+        while ($row = $res->fetchArray()) {
 
             $plots[] = Plot::getPlotById($row["plot_id"]);
         }
@@ -562,7 +588,7 @@ class Plot extends PermissionManager
      * @param int $id
      * @return Plot|null
      */
-    public static function getPlotById(int $id) : ?Plot
+    public static function getPlotById(int $id): ?Plot
     {
         $main = Main::getInstance();
         $stmt = $main->db->prepare("SELECT * FROM plots WHERE plot_id = :id");
@@ -654,7 +680,7 @@ class Plot extends PermissionManager
      *
      * @param Player|null $executor
      * @return mixed
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function delete(Player $executor = null): void
     {
@@ -673,8 +699,7 @@ class Plot extends PermissionManager
                     }
                 }
                 $this->getGroup()->delete();
-            }
-            else {
+            } else {
                 $this->getGroup()->removeFromGroup($this);
             }
         }
@@ -690,7 +715,7 @@ class Plot extends PermissionManager
      * This method resets all the Plot settings
      *
      * @param Player|null $executor
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function reset(Player $executor = null)
     {
