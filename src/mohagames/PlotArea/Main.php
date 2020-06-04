@@ -96,7 +96,7 @@ class Main extends PluginBase implements Listener
 
             case "saveplot":
                 if (!$sender instanceof Player) return false;
-                $p_name = $args[0];
+
 
                 if (!isset($this->pos_1[$sender->getName()]) || !isset($this->pos_2[$sender->getName()])) {
                     $sender->sendMessage("U moet de positie van het plot nog bepalen.");
@@ -106,6 +106,8 @@ class Main extends PluginBase implements Listener
                     $sender->sendMessage("§cGelieve een plotnaam op te geven. /saveplot <plotnaam>");
                     return true;
                 }
+
+                $p_name = $args[0];
 
                 if (Plot::getPlotByName($p_name) !== null) {
                     $sender->sendMessage("§4Er bestaat al een plot met deze naam");
@@ -196,7 +198,7 @@ class Main extends PluginBase implements Listener
                                 $sender->sendMessage("§4U staat niet op een plot");
                                 return true;
                             }
-                            if (!$sender->hasPermission("pa.staff.plot.addmember") || !$plot->isOwner($sender->getName())) {
+                            if (!$sender->hasPermission("pa.staff.plot.addmember") && !$plot->isOwner($sender->getName())) {
                                 $sender->sendMessage("§4U hebt geen permissie");
                                 return true;
                             }
@@ -225,7 +227,7 @@ class Main extends PluginBase implements Listener
                                 return true;
                             }
 
-                            if (!$sender->hasPermission("pa.staff.plot.removemember") || !$plot->isOwner($sender->getName())) {
+                            if (!$sender->hasPermission("pa.staff.plot.removemember") && !$plot->isOwner($sender->getName())) {
                                 $sender->sendMessage("§4U hebt geen permissies");
                                 return true;
                             }
@@ -265,7 +267,7 @@ class Main extends PluginBase implements Listener
 
 
                         case "setflag":
-                            if (!isset($args[1]) || isset($args[2]) || isset($args[3])) {
+                            if (!isset($args[1]) || !isset($args[2]) || !isset($args[3])) {
                                 $sender->sendMessage("§4Ongeldige arguments opgegeven. §cCommandgebruik: /plot setflag [speler] [permission] [true/false]");
                                 return true;
                             }
@@ -279,7 +281,7 @@ class Main extends PluginBase implements Listener
                                 return true;
                             }
 
-                            if (!$plot->isMember($args[2])) {
+                            if (!$plot->isMember($args[1])) {
                                 $sender->sendMessage("§4U kan geen permissions aanpassen van een speler dat geen lid is van het plot.");
                                 return true;
                             }
@@ -287,12 +289,17 @@ class Main extends PluginBase implements Listener
                             if (strtolower($args[3]) == "false") {
                                 $bool = false;
                             }
-                            if (strtolower($args[3]) == "true") {
+                            elseif (strtolower($args[3]) == "true") {
                                 $bool = true;
                             }
+                            else{
+                                $sender->sendMessage("§4Ongeldige arguments opgegeven. §cCommandgebruik: /plot setflag [speler] [permission] [true/false]");
+                                return true;
+                            }
+
                             $res = $plot->setPermission($args[1], $args[2], $bool);
 
-                            if ($res === false) {
+                            if (!$res) {
                                 $sender->sendMessage("§4Deze flag bestaat niet");
                             } elseif (is_null($res)) {
                                 $sender->sendMessage("§4U kan geen permissions aanpassen van een speler dat geen lid is van het plot.");
@@ -321,7 +328,7 @@ class Main extends PluginBase implements Listener
                             break;
 
                         case "userinfo":
-                            if (isset($args[1])) {
+                            if (!isset($args[1])) {
                                 $sender->sendMessage("§4Gelieve een spelernaam te geven.");
                                 return true;
                             }
