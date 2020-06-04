@@ -269,7 +269,7 @@ class Plot extends PermissionManager
      * @param string $member
      * @return bool
      */
-    public function isMember($member): bool
+    public function isMember(string $member): bool
     {
         $members = $this->getMembers();
 
