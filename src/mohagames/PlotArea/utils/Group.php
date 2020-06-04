@@ -33,23 +33,25 @@ class Group
 
     protected $group_name;
     protected $db;
+    protected $master_plot;
 
     /**
      * Gelieve nooit een Group aan te maken met de constructor. Als je dit wel doet dan zal je een error krijgen.
      *
      * Group constructor.
-     * @param $group_name
+     * @param string $group_name
      * @param Plot $master_plot
      */
-    public function __construct($group_name, Plot $master_plot)
+    public function __construct(string $group_name, Plot $master_plot)
     {
         $this->db = Main::GetInstance()->db;
         $this->group_name = $group_name;
+        $this->master_plot = $master_plot;
     }
 
 
     /**
-     * @param $group_name
+     * @param string $group_name
      * @return Group|null
      * @deprecated Deze method wordt binnenkort verwijderd en vervangen door Group::get()
      * @see Group::get()
@@ -74,7 +76,7 @@ class Group
     /**
      * Deze method returned een Group Object als er een Group is gevonden met de gegeven naam. Als er geen Group is gevonden met de gegeven naam dan returned de method null
      *
-     * @param $group_name
+     * @param string $group_name
      * @return Group|null
      */
     public static function get($group_name): ?Group
@@ -94,7 +96,7 @@ class Group
     /**
      * de save method maakt een nieuwe Group aan in de database en maakt de gegeven Plot een Master Plot en het 2de gegeven Plot een member plot.
      *
-     * @param $group_name
+     * @param string $group_name
      * @param Plot $master_plot
      * @param Plot $second_plot
      * @return bool
@@ -122,7 +124,7 @@ class Group
     /**
      * Deze method returned de ID van de Group
      *
-     * @return int
+     * @return int|null
      */
     public function getId(): ?int
     {
@@ -137,7 +139,7 @@ class Group
     /**
      * Deze method returned de naam van de Group
      *
-     * @return mixed
+     * @return string|null
      */
     public function getName(): ?string
     {
@@ -171,19 +173,19 @@ class Group
     /**
      * Deze method returned een array van alle Plots die een lid zijn van de Group
      *
-     * @return Plot[]
+     * @return Plot[]|null
      */
     public function getPlots() : ?array {
         $group_name = $this->getName();
         $stmt = $this->db->prepare("SELECT plot_id FROM plots WHERE group_name = :group_name");
         $stmt->bindParam("group_name", $group_name, SQLITE3_TEXT);
         $res = $stmt->execute();
-        $plots = null;
+
         while ($row = $res->fetchArray()) {
             $id = $row["plot_id"];
             $plots[] = Plot::getPlotById($id);
         }
-        return $plots;
+        return $plots ?? null;
     }
 
     /**
@@ -191,7 +193,6 @@ class Group
      *
      * @param string $name
      * @param Player|null $executor
-     * @throws \ReflectionException
      */
     public function setName(string $name, Player $executor = null): void
     {
@@ -213,7 +214,6 @@ class Group
      *
      * @param Plot $plot
      * @param Player|null $executor
-     * @throws \ReflectionException
      */
     public function setMasterPlot(Plot $plot, Player $executor = null)
     {
@@ -265,7 +265,7 @@ class Group
     }
 
     /**
-     * @param $group_name
+     * @param string $group_name
      * @return bool
      * @deprecated gebruik de Group::exists method
      *
@@ -290,7 +290,7 @@ class Group
     /**
      * Deze static method checkt als de gegeven Group bestaat of niet
      *
-     * @param $group_name
+     * @param string $group_name
      * @return bool
      */
     public static function exists($group_name)
@@ -312,7 +312,6 @@ class Group
      * Deze method delete de Group
      *
      * @param Player|null $executor
-     * @throws \ReflectionException
      */
     public function delete(Player $executor = null)
     {

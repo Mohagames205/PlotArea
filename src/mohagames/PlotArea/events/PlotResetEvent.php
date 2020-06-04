@@ -24,6 +24,7 @@ class PlotResetEvent extends PlotEvent implements Cancellable
     public function __construct(Plot $plot, ?Player $executor = null)
     {
         $this->plot = $plot;
+        $this->player = $executor;
     }
 
     public function getPlayer(): ?Player

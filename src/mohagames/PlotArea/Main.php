@@ -265,7 +265,9 @@ class Main extends PluginBase implements Listener
 
                             break;
 
-
+                        /**
+                         * TODO: Al deze code cleanen
+                         */
                         case "setflag":
                             if (!isset($args[1]) || !isset($args[2]) || !isset($args[3])) {
                                 $sender->sendMessage("§4Ongeldige arguments opgegeven. §cCommandgebruik: /plot setflag [speler] [permission] [true/false]");
@@ -518,13 +520,16 @@ class Main extends PluginBase implements Listener
     }
 
     /**
-     * @return mixed
+     * @return Main
      */
     public static function getInstance(): Main
     {
         return Main::$instance;
     }
 
+    /**
+     * @return SQLite3
+     */
     public static function getDb(): SQLite3
     {
         return Main::getInstance()->db;
