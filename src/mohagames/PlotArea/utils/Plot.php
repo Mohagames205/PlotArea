@@ -74,7 +74,7 @@ class Plot extends PermissionManager
 
     /**
      * This method is used for creating new Plots in the database.
-     * @param $name
+     * @param string $name
      * @param Level $level
      * @param array $location
      * @param string $owner
@@ -82,7 +82,7 @@ class Plot extends PermissionManager
      * @param Player|null $executor
      * @return Plot|bool
      */
-    public static function save($name, Level $level, array $location, string $owner = null, array $members = array(), Player $executor = null)
+    public static function save(string $name, Level $level, array $location, string $owner = null, array $members = array(), Player $executor = null)
     {
         if (is_null(Plot::getPlotByName($name))) {
             $db = Main::getInstance()->db;
@@ -266,7 +266,7 @@ class Plot extends PermissionManager
     /**
      * This method checks if the given player is an member of the Plot
      *
-     * @param $member
+     * @param string $member
      * @return bool
      */
     public function isMember($member): bool
@@ -336,12 +336,11 @@ class Plot extends PermissionManager
     /**
      * This method sets a new owner in the Plot
      *
-     * @param null $owner
+     * @param string|null $owner
      * @param Player|null $executor The Player who executed the command
      * @return bool
-     * @throws ReflectionException
      */
-    public function setOwner($owner = null, Player $executor = null): bool
+    public function setOwner(string $owner = null, Player $executor = null): bool
     {
         $owner = $owner ? strtolower($owner) : null;
         if (Member::exists($owner) || is_null($owner)) {
@@ -674,7 +673,6 @@ class Plot extends PermissionManager
      *
      *
      * @param Player|null $executor
-     * @return mixed
      * @throws ReflectionException
      */
     public function delete(Player $executor = null): void
