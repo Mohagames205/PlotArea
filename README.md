@@ -3,7 +3,7 @@
 # PlotArea
 Make personal areas for players!
 
-**Opgepast** Deze versie is __niet__ af, gebruik dit op eigen risico.
+**Opgepast** PlotArea is EOL aan het bereiken 
 
 ## Documentatie
 * https://mohagames205.github.io/PlotArea
@@ -18,9 +18,6 @@ Make personal areas for players!
 - [X] PermissionManager
   - [X] Permissions moeten makkelijk kunnen worden toegevoegd en verwijderd
 
-
-## Er worden ook nieuwe classes toegevoegd
-- [ ] Member class
 
 ## Downloads
 * **Stabiel** https://github.com/Mohagames205/PlotArea/releases
