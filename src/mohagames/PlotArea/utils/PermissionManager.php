@@ -268,13 +268,13 @@ class PermissionManager
                         foreach ($permission_list as $perm) {
                             if (!isset($plot->getPermissions()[$member][$perm])) {
                                 $plot->appendPermission($member, $perm);
-                                Main::getInstance()->getLogger()->info("Setting permission of $member");
+                                Main::getInstance()->getLogger()->debug("Setting permission of $member");
                             }
                         }
                         foreach ($playerpermissions as $perm) {
                             if (!$plot->exists($perm)) {
                                 $plot->removePermission($member, $perm);
-                                Main::getInstance()->getLogger()->info("Setting permission of $member");
+                                Main::getInstance()->getLogger()->debug("Setting permission of $member");
                             }
                         }
                     }
