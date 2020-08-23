@@ -3,7 +3,7 @@
 # PlotArea
 Make personal areas for players!
 
-**Opgepast** PlotArea is EOL aan het bereiken 
+**Opgepast** PlotArea heeft EOL bereikt en zal niet meer geupdate worden
 
 ## Documentatie
 * https://mohagames205.github.io/PlotArea
